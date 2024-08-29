@@ -1,3 +1,9 @@
+## v2.0.1 v1.3.1
+
+### Added
+
+-   when actions 'all' is selected, getActions will append filters to query string
+
 ## v2.0.0
 
 ### Fixes
