@@ -24,24 +24,20 @@ class BetterLensRequest extends LensRequest
         $resource = $this->resource();
 
         if (method_exists($this->lens(), 'decorateCollection')) {
-            $models = $this->lens()->decorateCollection($this, $models);
+            $models = $this->lens()
+                           ->decorateCollection($this, $models);
         }
 
         return $models->map(function ($model) use ($resource) {
-            $lensResource = $this->lens()->setResource($model);
+            $lensResource = $this->lens()
+                                 ->setResource($model);
 
-            return transform(new $resource($model)->serializeForIndex(
-                $this,
-                $lensResource->resolveFields($this)
-            ), function ($payload) use ($model, $lensResource) {
+            return transform(new $resource($model)->serializeForIndex($this, $lensResource->resolveFields($this)), function ($payload) use ($model, $lensResource) {
                 $payload['resourceLinkParameters'] = method_exists($lensResource, 'resourceLinkParameters') ? $lensResource::resourceLinkParameters($model, $this) : [];
-                $payload['actions'] = collect(array_values($lensResource->actions($this)))
-                    ->filter(function ($action) {
-                        return $action->shownOnIndex() || $action->shownOnTableRow();
-                    })
-                    ->filter->authorizedToSee($this)
-                    ->filter->authorizedToRun($this, $model)
-                    ->values();
+                $payload['actions'] = collect(array_values($lensResource->actions($this)))->filter(function ($action) {
+                      return $action->shownOnIndex() || $action->shownOnTableRow();
+                  })->filter->authorizedToSee($this)->filter->authorizedToRun($this, $model)
+                                                            ->values();
 
                 if ($this->viaRelationship() && method_exists($lensResource, 'authorizedToCreate')) {
                     $payload['authorizedToCreate'] = $lensResource->authorizedToCreate($this);
@@ -94,7 +90,7 @@ class BetterLensRequest extends LensRequest
         return (int) (in_array($this->perPage, $perPageOptions) ? $this->perPage : $perPageOptions[0]);
     }
 
-    public function perPageOptions(): array
+    public function perPageOptions(): ?array
     {
         $resource = $this->resource();
         $lens = $this->lens();
@@ -117,15 +113,17 @@ class BetterLensRequest extends LensRequest
     public function newQuery(): Builder
     {
         if (!$this->viaRelationship()) {
-            return $this->model()->newQuery();
+            return $this->model()
+                        ->newQuery();
         }
 
-        abort_unless($this->newViaResource()->hasRelatableField($this, $this->viaRelationship), 409);
+        abort_unless($this->newViaResource()
+                          ->hasRelatableField($this, $this->viaRelationship), 409);
 
         return forward_static_call([$this->viaResource(), 'newModel'])
-            ->newQueryWithoutScopes()->findOrFail(
-                $this->viaResourceId
-            )->{$this->viaRelationship}();
+          ->newQueryWithoutScopes()
+          ->findOrFail($this->viaResourceId)
+          ->{$this->viaRelationship}();
     }
 
     /**
@@ -136,14 +134,17 @@ class BetterLensRequest extends LensRequest
     public function newQueryWithoutScopes(): Builder
     {
         if (!$this->viaRelationship()) {
-            return $this->model()->newQueryWithoutScopes();
+            return $this->model()
+                        ->newQueryWithoutScopes();
         }
 
-        abort_unless($this->newViaResource()->hasRelatableField($this, $this->viaRelationship), 409);
+        abort_unless($this->newViaResource()
+                          ->hasRelatableField($this, $this->viaRelationship), 409);
 
         return forward_static_call([$this->viaResource(), 'newModel'])
-            ->newQueryWithoutScopes()->findOrFail(
-                $this->viaResourceId
-            )->{$this->viaRelationship}()->withoutGlobalScopes();
+          ->newQueryWithoutScopes()
+          ->findOrFail($this->viaResourceId)
+          ->{$this->viaRelationship}()
+          ->withoutGlobalScopes();
     }
 }
