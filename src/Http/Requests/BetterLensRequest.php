@@ -3,6 +3,7 @@
 namespace Lupennat\BetterLens\Http\Requests;
 
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use Laravel\Nova\Http\Requests\LensRequest;
 
 /**
@@ -13,6 +14,8 @@ class BetterLensRequest extends LensRequest
 {
     /**
      * Map the given models to the appropriate resource for the request.
+     *
+     * @param  \Illuminate\Support\Collection  $models
      *
      * @return \Illuminate\Support\Collection
      */
@@ -27,7 +30,7 @@ class BetterLensRequest extends LensRequest
         return $models->map(function ($model) use ($resource) {
             $lensResource = $this->lens()->setResource($model);
 
-            return transform((new $resource($model))->serializeForIndex(
+            return transform(new $resource($model)->serializeForIndex(
                 $this,
                 $lensResource->resolveFields($this)
             ), function ($payload) use ($model, $lensResource) {
@@ -45,8 +48,6 @@ class BetterLensRequest extends LensRequest
                 } else {
                     $payload['authorizedToCreate'] = false;
                 }
-
-                $payload['authorizedToCreate'] = false;
 
                 if (method_exists($lensResource, 'authorizedToView')) {
                     $payload['authorizedToView'] = $lensResource->authorizedToView($this);
@@ -93,7 +94,7 @@ class BetterLensRequest extends LensRequest
         return (int) (in_array($this->perPage, $perPageOptions) ? $this->perPage : $perPageOptions[0]);
     }
 
-    public function perPageOptions()
+    public function perPageOptions(): array
     {
         $resource = $this->resource();
         $lens = $this->lens();
@@ -113,7 +114,7 @@ class BetterLensRequest extends LensRequest
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function newQuery()
+    public function newQuery(): Builder
     {
         if (!$this->viaRelationship()) {
             return $this->model()->newQuery();
@@ -132,7 +133,7 @@ class BetterLensRequest extends LensRequest
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function newQueryWithoutScopes()
+    public function newQueryWithoutScopes(): Builder
     {
         if (!$this->viaRelationship()) {
             return $this->model()->newQueryWithoutScopes();
