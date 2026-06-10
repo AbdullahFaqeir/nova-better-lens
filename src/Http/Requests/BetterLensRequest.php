@@ -86,7 +86,7 @@ class BetterLensRequest extends LensRequest
      *
      * @return int
      */
-    public function perPage()
+    public function perPage(): int
     {
         $perPageOptions = $this->perPageOptions();
 
