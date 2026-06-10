@@ -16,7 +16,7 @@ class BetterLensRequest extends LensRequest
      *
      * @return \Illuminate\Support\Collection
      */
-    public function toResources(Collection $models)
+    public function toResources(Collection $models): Collection
     {
         $resource = $this->resource();
 
